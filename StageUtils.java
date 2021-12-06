@@ -32,6 +32,18 @@ public class StageUtils {
         return intRow;
     }
 
+    public static int convertToStageIndex(String line) {
+        int stageIndex;
+        try {
+            stageIndex = Integer.parseInt(line.split(" ")[1]);
+        }
+        catch (IndexOutOfBoundsException | NumberFormatException e) {
+            throw new IllegalStateException("스테이지 번호를 읽는데 실패하였습니다.");
+        }
+
+        return stageIndex;
+    }
+
     public static boolean isStartOfStage(String line) {
         return line.contains(MetaString.STAGE_START.getKeyWord());
     }

@@ -16,27 +16,17 @@ public class CmdStageReader implements StageReader {
         boolean isStartOfStage = false;
         int stageIndex = 0;
 
-        while(sc.hasNextLine()) {
+        while(!isClosed()) {
             String line = sc.nextLine();
 
-            // 스테이지 끝 부분이면 종료
-            if (StageUtils.isEndOfStage(line)) break;
-
-            // 입력이 종료되었으면 종료
-            if (isEndOfInput(line)) {
-                close();
-                break;
-            }
-
-            // 스테이지 시작 부분인지 확인
-            if (!isStartOfStage && StageUtils.isStartOfStage(line)) {
-                stageIndex = getStageIndex(line);
+            if (StageUtils.isEndOfStage(line)) break; // 스테이지 끝 부분이면 종료
+            if (closeReaderIfEndOfInput(line)) break; // 입력이 종료되었으면 종료
+            if (!isStartOfStage && StageUtils.isStartOfStage(line)) { // 스테이지 시작 부분인지 확인
                 isStartOfStage = true;
+                stageIndex = StageUtils.convertToStageIndex(line);
                 continue;
             }
-
-            // 입력에서 지도 추출
-            if (isStartOfStage) lines.add(line);
+            if (isStartOfStage) lines.add(line); // 입력에서 지도 추출
         }
 
         return new Stage(lines, stageIndex);
@@ -64,19 +54,11 @@ public class CmdStageReader implements StageReader {
         return (sc == null);
     }
 
-    private int getStageIndex(String line) {
-        int stageIndex;
-        try {
-            stageIndex = Integer.parseInt(line.split(" ")[1]);
-        }
-        catch (IndexOutOfBoundsException | NumberFormatException e) {
-            throw new IllegalStateException("스테이지 번호를 읽는데 실패하였습니다.");
-        }
+    private boolean closeReaderIfEndOfInput(String line) {
+        boolean isEndOfInput = line.isBlank();
 
-        return stageIndex;
-    }
+        if (isEndOfInput) close();
 
-    private boolean isEndOfInput(String line) {
-        return line.isBlank();
+        return isEndOfInput;
     }
 }
