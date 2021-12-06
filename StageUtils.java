@@ -31,4 +31,12 @@ public class StageUtils {
 
         return intRow;
     }
+
+    public static boolean isStartOfStage(String line) {
+        return line.contains(MetaString.STAGE_START.getKeyWord());
+    }
+
+    public static boolean isEndOfStage(String line) {
+        return line.contains(MetaString.STAGE_END.getKeyWord());
+    }
 }
