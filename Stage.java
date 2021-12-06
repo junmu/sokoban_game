@@ -83,4 +83,32 @@ public class Stage {
     public int getBallCount() {
         return ballCount;
     }
+
+    public String chrMapToString() {
+        StringBuilder sb = new StringBuilder();
+
+        for(char[] arr : chrMap) {
+            for (char chr : arr) {
+                sb.append(chr);
+            }
+            sb.append("\n");
+        }
+        sb.append("\n");
+
+        return sb.toString();
+    }
+
+    public String intMapToString() {
+        StringBuilder sb = new StringBuilder();
+
+        for(int[] arr : intMap) {
+            for (int num : arr) {
+                sb.append(num);
+            }
+            sb.append("\n");
+        }
+        sb.append("\n");
+
+        return sb.toString();
+    }
 }
