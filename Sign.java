@@ -6,7 +6,8 @@ public enum Sign {
     HALL('O', 1),
     BALL('o', 2),
     PLAYER('P', 3),
-    STAGE_DIV('=', 4);
+    STAGE_DIV('=', 4),
+    BALL_IN_HALL('0', 5);
 
     private char mean;
     private int value;
