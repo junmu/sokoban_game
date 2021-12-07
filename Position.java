@@ -13,6 +13,16 @@ public class Position extends Point {
     }
 
     @Override
+    public int getX() {
+        return x;
+    }
+
+    @Override
+    public int getY() {
+        return y;
+    }
+
+    @Override
     public boolean equals(Point point) {
         return point != null && x == point.getX() && y == point.getY();
     }
