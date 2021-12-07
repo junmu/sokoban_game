@@ -167,7 +167,7 @@ public class Play {
         char next = getValueOfPlayingMap(nx, ny);         // BALL이 이동할 위치의 원래 값
         char nextValue = Sign.BALL.getMean();             // BALL이 이동할 위치에 들어갈 값
 
-        if (isBall(origin)) origin = Sign.EMPTY.getMean();
+        if (isBall(origin) || isPlayer(origin)) origin = Sign.EMPTY.getMean();
         if (Sign.HALL.getMean() == next) nextValue = Sign.BALL_IN_HALL.getMean();
 
         setValueOnPlayingMap(ball, origin);
