@@ -11,7 +11,7 @@ public class CmdStageReader implements StageReader {
     }
 
     @Override
-    public Stage readGameMap() {
+    public Stage readStage() {
         List<String> lines = new ArrayList<>();
         boolean isStartOfStage = false;
         int stageIndex = 0;
@@ -33,11 +33,11 @@ public class CmdStageReader implements StageReader {
     }
 
     @Override
-    public List<Stage> readAllGameMaps() {
+    public List<Stage> readAllStages() {
         List<Stage> gameMapList = new ArrayList<>();
 
         while(!isClosed()) {
-            gameMapList.add(readGameMap());
+            gameMapList.add(readStage());
         }
 
         return gameMapList;

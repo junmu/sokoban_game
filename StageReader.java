@@ -1,8 +1,8 @@
 import java.util.List;
 
 public interface StageReader {
-    Stage readGameMap();
-    List<Stage> readAllGameMaps();
+    Stage readStage();
+    List<Stage> readAllStages();
     void close();
     boolean isClosed();
 }
