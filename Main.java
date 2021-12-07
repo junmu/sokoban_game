@@ -5,7 +5,8 @@ public class Main {
         boolean printError = (args.length > 0 && args[0].equals("PRINT_ERROR"));
 
         try {
-            StageReader reader = new CmdStageReader();
+            String workingDir = System.getProperty("user.dir");
+            StageReader reader = new FileStageReader(workingDir + "/map.txt");
             List<Stage> stageList = reader.readAllStages();
             SokobanGame game = new SokobanGame(stageList);
             game.startFirstStage();
