@@ -7,7 +7,8 @@ public class Main {
         try {
             StageReader reader = new CmdStageReader();
             List<Stage> stageList = reader.readAllStages();
-            printAllData(stageList);
+            SokobanGame game = new SokobanGame(stageList);
+            game.startFirstStage();
         } catch (Exception e) {
             if (printError) e.printStackTrace();
             System.out.println(e.getMessage());

@@ -64,6 +64,10 @@ public class Stage {
         return cloneMap;
     }
 
+    public char getOriginValueOfChrMap(Point point) {
+        return chrMap[point.getY()][point.getX()];
+    }
+
     public int getStageIndex() {
         return stageIndex;
     }
