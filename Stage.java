@@ -30,7 +30,7 @@ public class Stage {
 
         for (int y=0; y<argMap.length; y++) {
             if (width < argMap[y].length) width = argMap[y].length;
-            for (int x=0; x<argMap[0].length; x++) {
+            for (int x=0; x<argMap[y].length; x++) {
                 int value = argMap[y][x];
 
                 if (!Sign.isValidValue(value)) throw new IllegalArgumentException("맵 정보에 올바르지 않은 문자가 포함되었습니다. [" + value + "]");
