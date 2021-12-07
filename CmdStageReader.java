@@ -45,7 +45,6 @@ public class CmdStageReader implements StageReader {
 
     @Override
     public void close() {
-        sc.close();
         sc = null;
     }
 
