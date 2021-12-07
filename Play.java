@@ -35,22 +35,26 @@ public class Play {
         return success;
     }
 
-    public void start() throws Exception {
-        Scanner sc = new Scanner(System.in);
-        boolean containsQuit = false;
+    public void start() {
+        try {
+            Scanner sc = new Scanner(System.in);
+            boolean containsQuit = false;
 
-        writer.writeStage(playingMap);
+            System.out.println("Stage: " + stage.getStageIndex());
+            writer.writeStage(playingMap);
 
-        while (!containsQuit && !success) {
-            char[] commands = getUserCommands(sc);
-            containsQuit = executeAllCommands(commands);
+            while (!containsQuit && !success) {
+                char[] commands = getUserCommands(sc);
+                containsQuit = executeAllCommands(commands);
+            }
+
+            if (containsQuit) System.out.println("Bye~");
+            if (success) System.out.println("이동 횟수 : " + playerMoveCount + "\n성공!! 축하합니다.");
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new IllegalStateException("게임 실행 중 오류가 발생하였습니다.");
         }
-
-        if (success) {
-            System.out.println("성공!! 축하합니다.");
-        }
-
-        System.out.println("Bye~");
     }
 
     private char[] getUserCommands(Scanner sc) {
@@ -156,6 +160,8 @@ public class Play {
         if (Sign.HALL.getMean() == next) nextValue = Sign.BALL_IN_HALL.getMean();
 
         if (isBallInHall(nextValue)) ballInHallCount++;
+
+        playerMoveCount++;
 
         setValueOnPlayingMap(ball, origin);
         setValueOnPlayingMap(nx, ny, nextValue);
