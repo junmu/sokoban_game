@@ -34,13 +34,13 @@ public class CmdStageReader implements StageReader {
 
     @Override
     public List<Stage> readAllStages() {
-        List<Stage> gameMapList = new ArrayList<>();
+        List<Stage> stageList = new ArrayList<>();
 
         while(!isClosed()) {
-            gameMapList.add(readStage());
+            stageList.add(readStage());
         }
 
-        return gameMapList;
+        return stageList;
     }
 
     @Override
