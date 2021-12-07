@@ -6,7 +6,6 @@ public class Play {
     private StageWriter writer;
     private char[][] playingMap;
     private int playerMoveCount;
-    private int ballInHallCount;
     private boolean success;
 
     public Play(Stage stage) {
@@ -19,12 +18,15 @@ public class Play {
         this.writer = new CmdStageWriter();
         this.playingMap = stage.getCloneChrMap();
         this.playerMoveCount = 0;
-        this.ballInHallCount = 0;
         this.success = false;
     }
 
     private boolean isBall(char chr) {
         return Sign.BALL.getMean() == chr;
+    }
+
+    private boolean isPlayer(char chr) {
+        return Sign.PLAYER.getMean() == chr;
     }
 
     private boolean isBallInHall(char chr) {
@@ -84,7 +86,7 @@ public class Play {
 
             executeCommand(command);
 
-            if (stage.getBallCount() == ballInHallCount) success = true;
+            if (checkSuccess()) success = true;
 
             if (isSuccess()) break;
         }
@@ -104,6 +106,17 @@ public class Play {
         System.out.println(UserCommand.R.getMessage());
         init();
         writer.writeStage(playingMap);
+    }
+
+    private boolean checkSuccess() {
+        int ballInHallCount = 0;
+        for(char[] arr : playingMap) {
+            for(char chr : arr) {
+                if (isBallInHall(chr)) ballInHallCount++;
+            }
+        }
+
+        return ballInHallCount == stage.getBallCount();
     }
 
     private void executeCommand(char command) {
@@ -156,8 +169,6 @@ public class Play {
 
         if (isBall(origin)) origin = Sign.EMPTY.getMean();
         if (Sign.HALL.getMean() == next) nextValue = Sign.BALL_IN_HALL.getMean();
-
-        if (isBallInHall(nextValue)) ballInHallCount++;
 
         setValueOnPlayingMap(ball, origin);
         setValueOnPlayingMap(nx, ny, nextValue);
@@ -230,7 +241,6 @@ public class Play {
 
         if (Sign.PLAYER.getMean() == origin ||
                 Sign.BALL.getMean() == origin) origin = Sign.EMPTY.getMean();
-        if (isBallInHall(next)) ballInHallCount--;
 
         playerMoveCount++;
 
