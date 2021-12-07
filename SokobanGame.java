@@ -34,7 +34,7 @@ public class SokobanGame {
 
     public void nextStage(Stage stage) {
         findNextStage(stage)
-                .ifPresentOrElse(this::startGame, () -> System.out.println("전체 게임을 클리어하셨습니다!!\n"));
+                .ifPresentOrElse(this::startGame, this::endOfGame);
     }
 
     private Optional<Stage> findNextStage(Stage stage) {
@@ -45,10 +45,27 @@ public class SokobanGame {
                 .findAny();
     }
 
+    private boolean isAllCleared() {
+        return stageClearedStatus.values()
+                .stream()
+                .anyMatch(isCleared -> isCleared == false);
+    }
+
     private Long countOfClearedStages() {
         return stageClearedStatus.values()
                 .stream()
                 .filter(isCleared -> isCleared == true)
                 .count();
+    }
+
+    private void endOfGame() {
+        if (!isAllCleared()) {
+
+            System.out.println("마지막 스테이지 입니다.");
+            return;
+        }
+
+        System.out.println("전체 게임을 클리어하셨습니다!!");
+
     }
 }
