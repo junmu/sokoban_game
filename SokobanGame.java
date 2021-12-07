@@ -1,7 +1,4 @@
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 public class SokobanGame {
     private Map<Stage, Boolean> stageClearedStatus;
@@ -19,13 +16,30 @@ public class SokobanGame {
         this.stageList.addAll(stageList);
     }
 
-    public void startGame(Stage stage) throws Exception {
+    public void startFirstStage() {
+        startGame(stageList.get(0));
+    }
+
+    public void startGame(Stage stage) {
         Play play = new Play(stage);
         play.start();
         stageClearedStatus.replace(stage, play.isSuccess());
+
+        if (play.isSuccess()) {
+            nextStage(stage);
+        }
     }
 
-    public void startFirstStage() throws Exception {
-        startGame(stageList.get(0));
+    public void nextStage(Stage stage) {
+        findNextStage(stage)
+                .ifPresentOrElse(this::startGame, () -> System.out.println("전체 게임을 클리어하셨습니다!!\n"));
+    }
+
+    private Optional<Stage> findNextStage(Stage stage) {
+        int index = stageList.indexOf(stage);
+
+        return stageList.stream()
+                .filter(stg -> stageList.indexOf(stg) == index + 1)
+                .findAny();
     }
 }
