@@ -6,7 +6,7 @@ public class Main {
 
         try {
             StageReader reader = new CmdStageReader();
-            List<Stage> stageList = reader.readAllGameMaps();
+            List<Stage> stageList = reader.readAllStages();
             printAllData(stageList);
         } catch (Exception e) {
             if (printError) e.printStackTrace();
