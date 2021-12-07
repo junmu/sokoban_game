@@ -26,6 +26,8 @@ public class SokobanGame {
         stageClearedStatus.replace(stage, play.isSuccess());
 
         if (play.isSuccess()) {
+            Long count = countOfClearedStages();
+            System.out.println("클리어한 스테이지 수 " + count + "/" + stageList.size() + "\n");
             nextStage(stage);
         }
     }
@@ -41,5 +43,12 @@ public class SokobanGame {
         return stageList.stream()
                 .filter(stg -> stageList.indexOf(stg) == index + 1)
                 .findAny();
+    }
+
+    private Long countOfClearedStages() {
+        return stageClearedStatus.values()
+                .stream()
+                .filter(isCleared -> isCleared == true)
+                .count();
     }
 }
