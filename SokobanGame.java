@@ -48,7 +48,8 @@ public class SokobanGame {
     private boolean isAllCleared() {
         return stageClearedStatus.values()
                 .stream()
-                .anyMatch(isCleared -> isCleared == false);
+                .filter(isCleared -> isCleared == true)
+                .count() == stageList.size();
     }
 
     private Long countOfClearedStages() {
@@ -60,7 +61,6 @@ public class SokobanGame {
 
     private void endOfGame() {
         if (!isAllCleared()) {
-
             System.out.println("마지막 스테이지 입니다.");
             return;
         }
