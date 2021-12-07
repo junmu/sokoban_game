@@ -85,9 +85,7 @@ public class Play {
             }
 
             executeCommand(command);
-
             if (checkSuccess()) success = true;
-
             if (isSuccess()) break;
         }
 
