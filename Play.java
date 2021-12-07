@@ -125,8 +125,6 @@ public class Play {
         if (isMoveable) {
             movePlayer(userCommand);
         }
-
-
     }
 
     private Point getPlayerNextStep(Point direction) {
@@ -143,12 +141,12 @@ public class Play {
             return false;
         }
 
-        movePlayerPosition(ball, direction);
+        moveBallPosition(ball, direction);
 
         return isBallMoveable;
     }
 
-    private void movePlayerPosition(Point ball, Point direction) {
+    private void moveBallPosition(Point ball, Point direction) {
         int nx = ball.getX() + direction.getX();
         int ny = ball.getY() + direction.getY();
 
@@ -160,8 +158,6 @@ public class Play {
         if (Sign.HALL.getMean() == next) nextValue = Sign.BALL_IN_HALL.getMean();
 
         if (isBallInHall(nextValue)) ballInHallCount++;
-
-        playerMoveCount++;
 
         setValueOnPlayingMap(ball, origin);
         setValueOnPlayingMap(nx, ny, nextValue);
@@ -235,6 +231,8 @@ public class Play {
         if (Sign.PLAYER.getMean() == origin ||
                 Sign.BALL.getMean() == origin) origin = Sign.EMPTY.getMean();
         if (isBallInHall(next)) ballInHallCount--;
+
+        playerMoveCount++;
 
         setValueOnPlayingMap(nx, ny, Sign.PLAYER.getMean());
         setValueOnPlayingMap(player, origin);
