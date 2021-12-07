@@ -66,7 +66,10 @@ public class Play {
 
         for (char command : commands) {
             containsQuit = isQuit(command);
-            if (containsQuit) break;
+            if (containsQuit) {
+                System.out.println(UserCommand.Q.getMessage());
+                break;
+            }
 
             executeCommand(command);
         }
