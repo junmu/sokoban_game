@@ -4,13 +4,15 @@ public class Play {
     private Stage stage;
     private StageWriter writer;
     private PlayStatus playStatus;
+    private PlayStatusStore store;
 
     public Play(Stage stage) {
         this.stage = stage;
         writer = new CmdStageWriter();
+        store = new PlayStatusStore();
         init();
     }
-    
+
     private void init() {
         playStatus = new PlayStatus.PlayStatusBuilder()
                 .setStage(stage)
@@ -21,8 +23,18 @@ public class Play {
                 .setQuit(false)
                 .build();
     }
-    
-    
+
+    private void init(PlayStatus status) {
+        playStatus = new PlayStatus.PlayStatusBuilder()
+                .setStage(status.getStage())
+                .setPlayer(status.getPlayer())
+                .setPlayingMap(status.getClonePlayingMap())
+                .setPlayerMoveCount(status.getPlayerMoveCount())
+                .setSuccess(status.isSuccess())
+                .setQuit(status.isQuit())
+                .build();
+    }
+
     private boolean isBall(char chr) {
         return Sign.BALL.getMean() == chr;
     }
@@ -51,7 +63,7 @@ public class Play {
             if (playStatus.isSuccess()) System.out.println("이동 횟수 : " + playStatus.getPlayerMoveCount() + "\n성공!! 축하합니다.");
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
             throw new IllegalStateException("게임 실행 중 오류가 발생하였습니다.");
         }
     }
@@ -67,17 +79,25 @@ public class Play {
     }
 
     private void executeAllCommands(char[] commands) throws Exception {
+        StringBuffer digitBuffer = new StringBuffer();
 
         for (int i=0; i<commands.length && !playStatus.isQuit(); i++) {
             String command = String.valueOf(commands[i]);
 
+            if(Character.isDigit(commands[i])) {
+                digitBuffer.append(commands[i]);
+                continue;
+            }
+
             if (!isValidCommand(command)) printWarning();
 
-            if (SystemCommand.isValidCommand(command)) executeSystemCommand(command);
+            if (SystemCommand.isValidCommand(command)) executeSystemCommand(command, digitBuffer);
             if (playStatus.isQuit()) break;
 
             if (PlayerCommand.isValidCommand(command)) executePlayerCommand(command);
             if (playStatus.isSuccess()) break;
+
+            if (digitBuffer.length() > 0) digitBuffer = new StringBuffer();
         }
     }
 
@@ -85,27 +105,64 @@ public class Play {
         return SystemCommand.isValidCommand(command) || PlayerCommand.isValidCommand(command);
     }
 
-    private void executeSystemCommand(String command) throws Exception {
+    private void executeSystemCommand(String command, StringBuffer digitBuffer) throws Exception {
         if (isQuit(command)) {
             playStatus.setQuit(true);
-            System.out.println(SystemCommand.Q.getMessage());
+            System.out.println(SystemCommand.q.getMessage());
         }
 
         if (isReset(command)) {
             reset();
         }
+
+        if (isSaveOrLoad(command, digitBuffer)) {
+            int slotNum = Integer.parseInt(digitBuffer.toString());
+            saveOrLoad(command, slotNum);
+        }
+    }
+
+    private void saveOrLoad(String command, int slotNum) throws Exception {
+        SystemCommand.findSystemCommand(command).ifPresent((systemCommand) -> {
+            System.out.println(slotNum + "번 " + systemCommand.getMessage());
+
+            if (!store.isAvailableSlot(slotNum)) {
+                System.out.println("사용할 수 없는 슬롯입니다.");
+                return;
+            }
+
+            if (isSave(command) && store.saveStatus(playStatus, slotNum)) System.out.println("저장 성공!");
+
+            if (isLoad(command)) {
+                store.loadStatus(slotNum)
+                        .ifPresentOrElse(this::init, () -> System.out.println("진행상황을 불러오지 못하였습니다."));
+            }
+        });
+
+        playStatus.printPlayingMap();
     }
 
     private boolean isQuit(String command) {
-        return command.equalsIgnoreCase(SystemCommand.Q.name());
+        return command.equalsIgnoreCase(SystemCommand.q.name());
     }
 
     private boolean isReset(String command) {
-        return command.equalsIgnoreCase(SystemCommand.R.name());
+        return command.equalsIgnoreCase(SystemCommand.r.name());
+    }
+
+    private boolean isSave(String command) {
+        return command.equalsIgnoreCase(SystemCommand.S.name());
+    }
+
+    private boolean isLoad(String command) {
+        return command.equalsIgnoreCase(SystemCommand.L.name());
+    }
+
+    private boolean isSaveOrLoad(String command, StringBuffer digitBuffer) {
+        return (isSave(command) || isLoad(command)) && digitBuffer.length() > 0;
     }
 
     private void reset() throws Exception{
-        System.out.println(SystemCommand.R.getMessage());
+        System.out.println(SystemCommand.r.getMessage());
         init();
         playStatus.printPlayingMap();
     }
