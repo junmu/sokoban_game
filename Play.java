@@ -63,7 +63,7 @@ public class Play {
             if (playStatus.isSuccess()) System.out.println("이동 횟수 : " + playStatus.getPlayerMoveCount() + "\n성공!! 축하합니다.");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             throw new IllegalStateException("게임 실행 중 오류가 발생하였습니다.");
         }
     }
