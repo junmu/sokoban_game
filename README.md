@@ -359,7 +359,8 @@ D: 오른쪽으로 이동합니다.
 #### 3-1-1 정적 데이터
 3단계에서 `공이 구멍에 들어간 상태`와 `R 명령어`를 추가하라는 요구사항이 있었습니다.<br>
 `공이 구멍에 들어간 상태`는 지도에 표시될 기호이기 때문에 *Sign.java*에 추가하였습니다.<br>
-그리고 `R 명령어`는 기존 *UserCommand.java*에 추가하였습니다.
+그리고 `R 명령어`를 추가하려니 플레이어 이동 명령과는 다른 성격인 명령이 계속 추가되는 것 같아 이 둘을 분리하였습니다.<br>
+그리서 이동 명령은 *PlayerCommand.java*에 추가하고, `R 명령어`는 `Q 명령어`와 함께 *SystemCommand.java*에 추가하였습니다. 
 
 #### 3-1-2 동적 데이터
 추가로 필요하게된 동적 데이터는 `플레이어 이동 횟수`, `구멍에 들어간 공 개수` 입니다.<br>
@@ -383,6 +384,10 @@ D: 오른쪽으로 이동합니다.
 ROOT
 # 추가된 파일
 
+// 정적 데이터
+ㄴUserCommand.java -> PlayerCommand.java : 사용자의 입력 중 이동 방향에 대한 명령어만 저장함
+ㄴSystemCommand.java : 사용자의 입력 중 게임 시스템 상호작용에 대한 명령어만 저장함
+
 // 출력 관련 기능
 FileStageWriter.java : StageWriter의 구현체로, File을 통해 Stage 정보를 읽어 들임
 
@@ -394,7 +399,6 @@ FileStageWriter.java : StageWriter의 구현체로, File을 통해 Stage 정보�
 // 정적 데이터
 ㄴMetaString.java : 메타데이터를 저장함(Stage 시작, Stage 종료 플래그 저장)
 ㄴSign.java : sokoban 지도에 포함된 각 항목을 저장함
-ㄴUserCommand.java : 사용자 입력 및 이동방향, 메세지를 저장함
 
 // 동적 데이터
 ㄴPoint.java : x,y 페어를 저장하는 클래스로, 특정 좌표나 크기를 저장하는데 사용함
