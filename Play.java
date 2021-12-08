@@ -119,6 +119,10 @@ public class Play {
             int slotNum = Integer.parseInt(digitBuffer.toString());
             saveOrLoad(command, slotNum);
         }
+
+        if (isUndoOrCancelUndo(command)) {
+            UndoOrCancelUndo(command);
+        }
     }
 
     private void saveOrLoad(String command, int slotNum) throws Exception {
@@ -135,6 +139,25 @@ public class Play {
             if (isLoad(command)) {
                 store.loadStatus(slotNum)
                         .ifPresentOrElse(this::init, () -> System.out.println("진행상황을 불러오지 못하였습니다."));
+            }
+        });
+
+        playStatus.printPlayingMap();
+    }
+
+    private void UndoOrCancelUndo(String command) throws Exception {
+        SystemCommand.findSystemCommand(command).ifPresent((systemCommand) -> {
+
+            if (isUndo(command) && !playStatus.isDoStackEmpty()) {
+                String playerCommand = playStatus.popDoStack();
+                PlayerCommand.findPlayerCommand(playerCommand)
+                                .ifPresent(this::undoMoveProcess);
+            }
+
+            if (isCancelUndo(command) && !playStatus.isUndoStackEmpty()) {
+                String playerCommand = playStatus.popUndoStack();
+                PlayerCommand.findPlayerCommand(playerCommand)
+                        .ifPresent(this::moveProcess);
             }
         });
 
@@ -159,6 +182,18 @@ public class Play {
 
     private boolean isSaveOrLoad(String command, StringBuffer digitBuffer) {
         return (isSave(command) || isLoad(command)) && digitBuffer.length() > 0;
+    }
+
+    private boolean isUndo(String command) {
+        return command.equals(SystemCommand.u.name());
+    }
+
+    private boolean isCancelUndo(String command) {
+        return command.equals(SystemCommand.U.name());
+    }
+
+    private boolean isUndoOrCancelUndo(String command) {
+        return (isUndo(command) || isCancelUndo(command));
     }
 
     private void reset() throws Exception{
@@ -251,6 +286,8 @@ public class Play {
             }
 
             movePlayerPosition(player, direction);
+            playStatus.playerMoved();
+            playStatus.pushDoStack(playerCommand.name());
 
             System.out.println(playerCommand.name() + ": " + playerCommand.getMessage());
             playStatus.printPlayingMap();
@@ -292,13 +329,56 @@ public class Play {
         if (Sign.PLAYER.getMean() == origin ||
                 Sign.BALL.getMean() == origin) origin = Sign.EMPTY.getMean();
 
-        playStatus.playerMoved();
-
         playStatus.setValueOnPlayingMap(nx, ny, Sign.PLAYER.getMean());
         playStatus.setValueOnPlayingMap(player, origin);
 
         player.x = nx;
         player.y = ny;
+    }
+
+    private void undoMoveProcess(PlayerCommand playerCommand) {
+        try {
+            Point direction = playerCommand.getDirection();
+            Point reverse = playerCommand.getReverse();
+            Point nextPoint = getPlayerNextStep(direction);
+
+            char next = playStatus.getValueOfPlayingMap(nextPoint);
+            boolean isBallExist = (isBall(next) || isBallInHall(next));
+
+            undoMovePlayer(playerCommand);
+
+            if (isBallExist) undoMoveBall(nextPoint, reverse);
+
+            System.out.println("한 턴 되돌리기: " + playerCommand.name());
+
+            playStatus.printPlayingMap();
+        } catch (Exception e) {
+            throw new IllegalStateException("한 턴 되돌리기 실행 중 문제가 발생하였습니다.[" + playerCommand.name() + "]");
+        }
+    }
+
+    private void undoMoveBall(Point ball, Point direction) {
+        boolean isBallMoveable = isBallMoveable(ball, direction);
+
+        if (!isBallMoveable) {
+            printWarning();
+        }
+
+        moveBallPosition(ball, direction);
+    }
+
+    private void undoMovePlayer(PlayerCommand playerCommand) {
+        Position player = playStatus.getPlayer();
+        Point reverse = playerCommand.getReverse();
+
+        if (!isPlayerMoveable(player, reverse)) {
+            printWarning();
+            return;
+        }
+
+        movePlayerPosition(player, reverse);
+        playStatus.undoPlayerMoved();
+        playStatus.pushUndoStack(playerCommand.name());
     }
 
     public boolean isSuccess() {

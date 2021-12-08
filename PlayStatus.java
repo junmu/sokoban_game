@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.Stack;
 
 public class PlayStatus {
     private Stage stage;
@@ -7,6 +8,9 @@ public class PlayStatus {
     private int playerMoveCount;
     private boolean success;
     private boolean quit;
+
+    private Stack<String> doStack;
+    private Stack<String> undoStack;
 
     private PlayStatus(Stage stage,
                        Position player,
@@ -20,6 +24,9 @@ public class PlayStatus {
         this.playerMoveCount = playerMoveCount;
         this.success = success;
         this.quit = quit;
+
+        doStack = new Stack<>();
+        undoStack = new Stack<>();
     }
 
     public Stage getStage() {
@@ -106,6 +113,30 @@ public class PlayStatus {
 
     private boolean isBallInHall(char chr) {
         return Sign.BALL_IN_HALL.getMean() == chr;
+    }
+
+    public void pushDoStack(String command) {
+        doStack.push(command);
+    }
+
+    public String popDoStack() {
+        return doStack.pop();
+    }
+
+    public boolean isDoStackEmpty() {
+        return doStack.isEmpty();
+    }
+
+    public void pushUndoStack(String command) {
+        undoStack.push(command);
+    }
+
+    public String popUndoStack() {
+        return undoStack.pop();
+    }
+
+    public boolean isUndoStackEmpty() {
+        return undoStack.isEmpty();
     }
 
     public static class PlayStatusBuilder {
