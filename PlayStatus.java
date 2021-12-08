@@ -4,17 +4,20 @@ public class PlayStatus {
     private char[][] playingMap;
     private int playerMoveCount;
     private boolean success;
+    private boolean quit;
 
     private PlayStatus(Stage stage,
                        Position player,
                        char[][] playingMap,
                        int playerMoveCount,
-                       boolean success) {
+                       boolean success,
+                       boolean quit) {
         this.stage = stage;
         this.player = player;
         this.playingMap = playingMap;
         this.playerMoveCount = playerMoveCount;
         this.success = success;
+        this.quit = quit;
     }
 
     public Stage getStage() {
@@ -70,6 +73,14 @@ public class PlayStatus {
         this.success = success;
     }
 
+    public boolean isQuit() {
+        return quit;
+    }
+
+    public void setQuit(boolean quit) {
+        this.quit = quit;
+    }
+
     public boolean checkSuccess() {
         int ballInHallCount = 0;
         for(char[] arr : playingMap) {
@@ -91,6 +102,7 @@ public class PlayStatus {
         private char[][] playingMap;
         private int playerMoveCount;
         private boolean success;
+        private boolean quit;
 
         public PlayStatusBuilder setStage(Stage stage) {
             this.stage = stage;
@@ -117,12 +129,18 @@ public class PlayStatus {
             return this;
         }
 
+        public PlayStatusBuilder setQuit(boolean quit) {
+            this.quit = quit;
+            return this;
+        }
+
         public PlayStatus build() {
             return new PlayStatus(stage,
                                 player,
                                 playingMap,
                                 playerMoveCount,
-                                success);
+                                success,
+                                quit);
         }
     }
 }

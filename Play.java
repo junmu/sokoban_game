@@ -18,6 +18,7 @@ public class Play {
                 .setPlayingMap(stage.getCloneChrMap())
                 .setPlayerMoveCount(0)
                 .setSuccess(false)
+                .setQuit(false)
                 .build();
     }
     
@@ -37,17 +38,16 @@ public class Play {
     public void start() {
         try {
             Scanner sc = new Scanner(System.in);
-            boolean containsQuit = false;
 
             System.out.println("Stage: " + playStatus.getStage().getStageIndex());
             writer.writeStage(stage);
 
-            while (!containsQuit && !playStatus.isSuccess()) {
+            while (!playStatus.isQuit() && !playStatus.isSuccess()) {
                 char[] commands = getUserCommands(sc);
-                containsQuit = executeAllCommands(commands);
+                executeAllCommands(commands);
             }
 
-            if (containsQuit) System.out.println("Bye~");
+            if (playStatus.isQuit()) System.out.println("Bye~");
             if (playStatus.isSuccess()) System.out.println("이동 횟수 : " + playStatus.getPlayerMoveCount() + "\n성공!! 축하합니다.");
 
         } catch (Exception e) {
@@ -66,44 +66,34 @@ public class Play {
         return line.toCharArray();
     }
 
-    private boolean executeAllCommands(char[] commands) throws Exception {
-        for (char cmd : commands) {
-            String command = String.valueOf(cmd);
+    private void executeAllCommands(char[] commands) throws Exception {
 
-            if (!isValidCommand(command)) {
-                printWarning();
-                break;
-            }
-            if (SystemCommand.isValidCommand(command)) {
-                boolean containsQuit = executeSystemCommand(command);
-                if (containsQuit) return true;
-            }
-            if (PlayerCommand.isValidCommand(command)) {
-                executePlayerCommand(command);
-                if (isSuccess()) break;
-            }
+        for (int i=0; i<commands.length && !playStatus.isQuit(); i++) {
+            String command = String.valueOf(commands[i]);
+
+            if (!isValidCommand(command)) printWarning();
+
+            if (SystemCommand.isValidCommand(command)) executeSystemCommand(command);
+            if (playStatus.isQuit()) break;
+
+            if (PlayerCommand.isValidCommand(command)) executePlayerCommand(command);
+            if (playStatus.isSuccess()) break;
         }
-
-        return false;
     }
 
     private boolean isValidCommand(String command) {
         return SystemCommand.isValidCommand(command) || PlayerCommand.isValidCommand(command);
     }
 
-    private boolean executeSystemCommand(String command) throws Exception {
-        boolean isQuit = false;
-
+    private void executeSystemCommand(String command) throws Exception {
         if (isQuit(command)) {
-            isQuit = true;
+            playStatus.setQuit(true);
             System.out.println(SystemCommand.Q.getMessage());
         }
 
         if (isReset(command)) {
             reset();
         }
-
-        return isQuit;
     }
 
     private boolean isQuit(String command) {
