@@ -142,19 +142,19 @@ public class Play {
     }
 
     private boolean isQuit(String command) {
-        return command.equalsIgnoreCase(SystemCommand.q.name());
+        return command.equals(SystemCommand.q.name());
     }
 
     private boolean isReset(String command) {
-        return command.equalsIgnoreCase(SystemCommand.r.name());
+        return command.equals(SystemCommand.r.name());
     }
 
     private boolean isSave(String command) {
-        return command.equalsIgnoreCase(SystemCommand.S.name());
+        return command.equals(SystemCommand.S.name());
     }
 
     private boolean isLoad(String command) {
-        return command.equalsIgnoreCase(SystemCommand.L.name());
+        return command.equals(SystemCommand.L.name());
     }
 
     private boolean isSaveOrLoad(String command, StringBuffer digitBuffer) {
