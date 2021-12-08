@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 public class PlayStatus {
     private Stage stage;
     private Position player;
@@ -38,6 +40,16 @@ public class PlayStatus {
 
     public void undoPlayerMoved() {
         playerMoveCount--;
+    }
+
+    public char[][] getClonePlayingMap() {
+        char[][] cloneMap = new char[playingMap.length][];
+
+        for (int y=0; y<cloneMap.length; y++) {
+            cloneMap[y] = Arrays.copyOf(playingMap[y], playingMap[y].length);
+        }
+
+        return cloneMap;
     }
 
     public char getValueOfPlayingMap(Point point) {
