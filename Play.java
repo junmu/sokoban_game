@@ -1,26 +1,27 @@
 import java.util.Scanner;
 
 public class Play {
-    private final Stage stage;
-    private Position player;
+    private Stage stage;
     private StageWriter writer;
-    private char[][] playingMap;
-    private int playerMoveCount;
-    private boolean success;
+    private PlayStatus playStatus;
 
     public Play(Stage stage) {
         this.stage = stage;
+        writer = new CmdStageWriter();
         init();
     }
-
+    
     private void init() {
-        this.player = new Position(stage.getPlayerLocation());
-        this.writer = new CmdStageWriter();
-        this.playingMap = stage.getCloneChrMap();
-        this.playerMoveCount = 0;
-        this.success = false;
+        playStatus = new PlayStatus.PlayStatusBuilder()
+                .setStage(stage)
+                .setPlayer(new Position(stage.getPlayerLocation()))
+                .setPlayingMap(stage.getCloneChrMap())
+                .setPlayerMoveCount(0)
+                .setSuccess(false)
+                .build();
     }
-
+    
+    
     private boolean isBall(char chr) {
         return Sign.BALL.getMean() == chr;
     }
@@ -33,25 +34,21 @@ public class Play {
         return Sign.BALL_IN_HALL.getMean() == chr;
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
-
     public void start() {
         try {
             Scanner sc = new Scanner(System.in);
             boolean containsQuit = false;
 
-            System.out.println("Stage: " + stage.getStageIndex());
-            writer.writeStage(playingMap);
+            System.out.println("Stage: " + playStatus.getStage().getStageIndex());
+            writer.writeStage(stage);
 
-            while (!containsQuit && !success) {
+            while (!containsQuit && !playStatus.isSuccess()) {
                 char[] commands = getUserCommands(sc);
                 containsQuit = executeAllCommands(commands);
             }
 
             if (containsQuit) System.out.println("Bye~");
-            if (success) System.out.println("이동 횟수 : " + playerMoveCount + "\n성공!! 축하합니다.");
+            if (playStatus.isSuccess()) System.out.println("이동 횟수 : " + playStatus.getPlayerMoveCount() + "\n성공!! 축하합니다.");
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -120,18 +117,7 @@ public class Play {
     private void reset() throws Exception{
         System.out.println(SystemCommand.R.getMessage());
         init();
-        writer.writeStage(playingMap);
-    }
-
-    private boolean checkSuccess() {
-        int ballInHallCount = 0;
-        for(char[] arr : playingMap) {
-            for(char chr : arr) {
-                if (isBallInHall(chr)) ballInHallCount++;
-            }
-        }
-
-        return ballInHallCount == stage.getBallCount();
+        playStatus.printPlayingMap();
     }
 
     private void executePlayerCommand(String command) {
@@ -144,7 +130,7 @@ public class Play {
         Point direction = playerCommand.getDirection();
         Point nextPoint = getPlayerNextStep(direction);
 
-        char next = getValueOfPlayingMap(nextPoint);
+        char next = playStatus.getValueOfPlayingMap(nextPoint);
         boolean isMoveable = true;
         if (isBall(next) || isBallInHall(next)) {
             isMoveable = tryMoveBall(nextPoint, direction);
@@ -154,10 +140,11 @@ public class Play {
             movePlayer(playerCommand);
         }
 
-        if (checkSuccess()) this.success = true;
+        if (playStatus.checkSuccess()) playStatus.setSuccess(true);
     }
 
     private Point getPlayerNextStep(Point direction) {
+        Position player = playStatus.getPlayer();
         int x = player.x + direction.getX();
         int y = player.y + direction.getY();
 
@@ -181,23 +168,23 @@ public class Play {
         int ny = ball.getY() + direction.getY();
 
         char origin = stage.getOriginValueOfChrMap(ball); // BALL이 있던 위치의 원래 값
-        char next = getValueOfPlayingMap(nx, ny);         // BALL이 이동할 위치의 원래 값
+        char next = playStatus.getValueOfPlayingMap(nx, ny);         // BALL이 이동할 위치의 원래 값
         char nextValue = Sign.BALL.getMean();             // BALL이 이동할 위치에 들어갈 값
 
         if (isBall(origin) || isPlayer(origin)) origin = Sign.EMPTY.getMean();
         if (Sign.HALL.getMean() == next) nextValue = Sign.BALL_IN_HALL.getMean();
 
-        setValueOnPlayingMap(ball, origin);
-        setValueOnPlayingMap(nx, ny, nextValue);
+        playStatus.setValueOnPlayingMap(ball, origin);
+        playStatus.setValueOnPlayingMap(nx, ny, nextValue);
     }
 
     private boolean isBallMoveable(Point position, Point direction) {
         int x = position.getX() + direction.getX();
         int y = position.getY() + direction.getY();
 
-        if (y < 0 || y >= playingMap.length || x < 0 || x >= playingMap[y].length) return false;
+        if (playStatus.isOutOfBoundOnPlayingMap(x, y)) return false;
 
-        char next = getValueOfPlayingMap(x,y);
+        char next = playStatus.getValueOfPlayingMap(x,y);
 
         //EMPTY, HALL 이 아니면 움직일 수 없음
         if (Sign.EMPTY.getMean() != next &&
@@ -208,6 +195,7 @@ public class Play {
 
     private void movePlayer(PlayerCommand playerCommand) {
         try {
+            Position player = playStatus.getPlayer();
             Point direction = playerCommand.getDirection();
 
             if (!isPlayerMoveable(player, direction)) {
@@ -218,7 +206,7 @@ public class Play {
             movePlayerPosition(player, direction);
 
             System.out.println(playerCommand.name() + ": " + playerCommand.getMessage());
-            writer.writeStage(playingMap);
+            playStatus.printPlayingMap();
         } catch (Exception e) {
             throw new IllegalStateException("플레이어를 움직이는 도중 문제가 발생하였습니다.[" + playerCommand.name() + "]");
         }
@@ -227,7 +215,7 @@ public class Play {
     private void printWarning() {
         try {
             System.out.println("(경고!) 해당 명령을 수행할 수 없습니다!!");
-            writer.writeStage(playingMap);
+            playStatus.printPlayingMap();
         } catch (Exception e) {
             throw new IllegalStateException("경고 메세지 출력 중 문제가 발생하였습니다.");
         }
@@ -237,9 +225,9 @@ public class Play {
         int x = position.x + direction.getX();
         int y = position.y + direction.getY();
 
-        if (y < 0 || y >= playingMap.length || x < 0 || x >= playingMap[y].length) return false;
+        if (playStatus.isOutOfBoundOnPlayingMap(x, y)) return false;
 
-        char next = getValueOfPlayingMap(x,y);
+        char next = playStatus.getValueOfPlayingMap(x,y);
 
         //EMPTY, HALL, BALL_IN_HALL 이 아니면 움직일 수 없음
         if (Sign.EMPTY.getMean() != next &&
@@ -257,28 +245,20 @@ public class Play {
         if (Sign.PLAYER.getMean() == origin ||
                 Sign.BALL.getMean() == origin) origin = Sign.EMPTY.getMean();
 
-        playerMoveCount++;
+        playStatus.playerMoved();
 
-        setValueOnPlayingMap(nx, ny, Sign.PLAYER.getMean());
-        setValueOnPlayingMap(player, origin);
+        playStatus.setValueOnPlayingMap(nx, ny, Sign.PLAYER.getMean());
+        playStatus.setValueOnPlayingMap(player, origin);
 
         player.x = nx;
         player.y = ny;
     }
 
-    private char getValueOfPlayingMap(Point point) {
-        return playingMap[point.getY()][point.getX()];
+    public boolean isSuccess() {
+        return playStatus.isSuccess();
     }
 
-    private char getValueOfPlayingMap(int x, int y) {
-        return playingMap[y][x];
-    }
-
-    private void setValueOnPlayingMap(Point point, char value) {
-        playingMap[point.getY()][point.getX()] = value;
-    }
-
-    private void setValueOnPlayingMap(int x, int y, char value) {
-        playingMap[y][x] = value;
+    public Stage getStage() {
+        return stage;
     }
 }
