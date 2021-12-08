@@ -1,7 +1,7 @@
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-public class AES256Encryter extends AES256 {
+public class AES256Encrypter extends AES256 {
 
     @Override
     public String encrypt(String text) throws Exception {
