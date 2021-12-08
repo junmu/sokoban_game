@@ -1,3 +1,7 @@
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import java.io.File;
 import java.util.*;
 
 public class SokobanGame {
@@ -16,7 +20,21 @@ public class SokobanGame {
         this.stageList.addAll(stageList);
     }
 
+    public void starBgm() {
+        try {
+            Clip clip = AudioSystem.getClip();
+            AudioInputStream input = AudioSystem.getAudioInputStream(new File("mattoglseby-4.wav"));
+            clip.open(input);
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+            clip.start();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println("배경음악을 찾지 못했습니다.");
+        }
+    }
+
     public void startFirstStage() {
+        starBgm();
         startGame(stageList.get(0));
     }
 
