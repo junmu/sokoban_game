@@ -34,9 +34,7 @@ public class FileStageReader implements StageReader {
             if (isStartOfStage) lines.add(line); // 입력에서 지도 추출
         }
 
-        // 입력이 종료되었으면 종료
-        if (!sc.hasNext()) close();
-
+        if (!sc.hasNext()) close(); // 입력이 종료되었으면 종료
         return new Stage(lines, stageIndex);
     }
 

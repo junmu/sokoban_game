@@ -11,7 +11,7 @@ public class CmdStageWriter implements StageWriter {
     }
 
     @Override
-    public void writeStage(char[][] chrMap) throws Exception{
+    public void writeStage(char[][] chrMap) throws Exception {
         for(char[] arr : chrMap) {
             for (char chr : arr) {
                 writer.append(chr);
@@ -23,7 +23,7 @@ public class CmdStageWriter implements StageWriter {
     }
 
     @Override
-    public void writeStage(Stage stage) throws Exception{
+    public void writeStage(Stage stage) throws Exception {
         writer.append("Stage " + stage.getStageIndex())
                 .append("\n")
                 .append(stage.chrMapToString())
@@ -31,7 +31,7 @@ public class CmdStageWriter implements StageWriter {
     }
 
     @Override
-    public void writeAllStages(List<Stage> stageList) throws Exception{
+    public void writeAllStages(List<Stage> stageList) throws Exception {
         for (Stage stage : stageList) {
             writeStage(stage);
             writer.write("\n");
@@ -39,7 +39,7 @@ public class CmdStageWriter implements StageWriter {
     }
 
     @Override
-    public void close() throws Exception{
+    public void close() throws Exception {
         writer = null;
     }
 

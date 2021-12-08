@@ -89,14 +89,12 @@ public class Play {
                 continue;
             }
 
-            if (!isValidCommand(command)) printWarning();
-
             if (SystemCommand.isValidCommand(command)) executeSystemCommand(command, digitBuffer);
             if (playStatus.isQuit()) break;
-
             if (PlayerCommand.isValidCommand(command)) executePlayerCommand(command);
             if (playStatus.isSuccess()) break;
 
+            if (!isValidCommand(command)) printWarning();
             if (digitBuffer.length() > 0) digitBuffer = new StringBuffer();
         }
     }
