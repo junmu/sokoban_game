@@ -8,25 +8,25 @@ public class PlayStatus {
     private int playerMoveCount;
     private boolean success;
     private boolean quit;
-
-    private Stack<String> doStack;
-    private Stack<String> undoStack;
+    private final Stack<String> doStack;
+    private final Stack<String> undoStack;
 
     private PlayStatus(Stage stage,
                        Position player,
                        char[][] playingMap,
                        int playerMoveCount,
                        boolean success,
-                       boolean quit) {
+                       boolean quit,
+                       Stack<String> doStack,
+                       Stack<String> undoStack) {
         this.stage = stage;
         this.player = player;
         this.playingMap = playingMap;
         this.playerMoveCount = playerMoveCount;
         this.success = success;
         this.quit = quit;
-
-        doStack = new Stack<>();
-        undoStack = new Stack<>();
+        this.doStack = doStack;
+        this.undoStack = undoStack;
     }
 
     public Stage getStage() {
@@ -139,6 +139,14 @@ public class PlayStatus {
         return undoStack.isEmpty();
     }
 
+    public Stack<String> cloneDoStack() {
+        return (Stack<String>) doStack.clone();
+    }
+
+    public Stack<String> cloneUndoStack() {
+        return (Stack<String>) undoStack.clone();
+    }
+
     public static class PlayStatusBuilder {
         private Stage stage;
         private Position player;
@@ -146,6 +154,8 @@ public class PlayStatus {
         private int playerMoveCount;
         private boolean success;
         private boolean quit;
+        public Stack<String> doStack;
+        public Stack<String> undoStack;
 
         public PlayStatusBuilder setStage(Stage stage) {
             this.stage = stage;
@@ -177,13 +187,28 @@ public class PlayStatus {
             return this;
         }
 
+        public PlayStatusBuilder setDoStack(Stack<String> doStack) {
+            this.doStack = doStack;
+            return this;
+        }
+
+        public PlayStatusBuilder setUndoStack(Stack<String> undoStack) {
+            this.undoStack = undoStack;
+            return this;
+        }
+
         public PlayStatus build() {
+            if (this.doStack == null) doStack = new Stack<>();
+            if (this.undoStack == null) undoStack = new Stack<>();
+
             return new PlayStatus(stage,
                                 player,
                                 playingMap,
                                 playerMoveCount,
                                 success,
-                                quit);
+                                quit,
+                                doStack,
+                                undoStack);
         }
     }
 }

@@ -20,6 +20,8 @@ public class PlayStatusStore {
                     .setPlayerMoveCount(status.getPlayerMoveCount())
                     .setSuccess(status.isSuccess())
                     .setQuit(status.isQuit())
+                    .setDoStack(status.cloneDoStack())
+                    .setUndoStack(status.cloneUndoStack())
                     .build();
             return true;
         }
