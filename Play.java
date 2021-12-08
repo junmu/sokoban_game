@@ -70,38 +70,55 @@ public class Play {
     }
 
     private boolean executeAllCommands(char[] commands) throws Exception {
-        boolean containsQuit = false;
+        for (char cmd : commands) {
+            String command = String.valueOf(cmd);
 
-        for (char command : commands) {
-            containsQuit = isQuit(command);
-            if (containsQuit) {
-                System.out.println(UserCommand.Q.getMessage());
+            if (!isValidCommand(command)) {
+                printWarning();
                 break;
             }
-
-            if (isReset(command)) {
-                reset();
-                continue;
+            if (SystemCommand.isValidCommand(command)) {
+                boolean containsQuit = executeSystemCommand(command);
+                if (containsQuit) return true;
             }
-
-            executeCommand(command);
-            if (checkSuccess()) success = true;
-            if (isSuccess()) break;
+            if (PlayerCommand.isValidCommand(command)) {
+                executePlayerCommand(command);
+                if (isSuccess()) break;
+            }
         }
 
-        return containsQuit;
+        return false;
     }
 
-    private boolean isQuit(char command) {
-        return String.valueOf(command).equalsIgnoreCase(UserCommand.Q.name());
+    private boolean isValidCommand(String command) {
+        return SystemCommand.isValidCommand(command) || PlayerCommand.isValidCommand(command);
     }
 
-    private boolean isReset(char command) {
-        return String.valueOf(command).equalsIgnoreCase(UserCommand.R.name());
+    private boolean executeSystemCommand(String command) throws Exception {
+        boolean isQuit = false;
+
+        if (isQuit(command)) {
+            isQuit = true;
+            System.out.println(SystemCommand.Q.getMessage());
+        }
+
+        if (isReset(command)) {
+            reset();
+        }
+
+        return isQuit;
+    }
+
+    private boolean isQuit(String command) {
+        return command.equalsIgnoreCase(SystemCommand.Q.name());
+    }
+
+    private boolean isReset(String command) {
+        return command.equalsIgnoreCase(SystemCommand.R.name());
     }
 
     private void reset() throws Exception{
-        System.out.println(UserCommand.R.getMessage());
+        System.out.println(SystemCommand.R.getMessage());
         init();
         writer.writeStage(playingMap);
     }
@@ -117,14 +134,14 @@ public class Play {
         return ballInHallCount == stage.getBallCount();
     }
 
-    private void executeCommand(char command) {
+    private void executePlayerCommand(String command) {
         System.out.println("\n명령어: " + command);
-        UserCommand.findUserCommand(command)
-                .ifPresentOrElse(this::moveProcess, this::printWarning);
+        PlayerCommand.findPlayerCommand(command)
+                .ifPresent(this::moveProcess);
     }
 
-    private void moveProcess(UserCommand userCommand) {
-        Point direction = userCommand.getDirection();
+    private void moveProcess(PlayerCommand playerCommand) {
+        Point direction = playerCommand.getDirection();
         Point nextPoint = getPlayerNextStep(direction);
 
         char next = getValueOfPlayingMap(nextPoint);
@@ -134,8 +151,10 @@ public class Play {
         }
 
         if (isMoveable) {
-            movePlayer(userCommand);
+            movePlayer(playerCommand);
         }
+
+        if (checkSuccess()) this.success = true;
     }
 
     private Point getPlayerNextStep(Point direction) {
@@ -187,9 +206,9 @@ public class Play {
         return true;
     }
 
-    private void movePlayer(UserCommand userCommand) {
+    private void movePlayer(PlayerCommand playerCommand) {
         try {
-            Point direction = userCommand.getDirection();
+            Point direction = playerCommand.getDirection();
 
             if (!isPlayerMoveable(player, direction)) {
                 printWarning();
@@ -198,10 +217,10 @@ public class Play {
 
             movePlayerPosition(player, direction);
 
-            System.out.println(userCommand.name() + ": " + userCommand.getMessage());
+            System.out.println(playerCommand.name() + ": " + playerCommand.getMessage());
             writer.writeStage(playingMap);
         } catch (Exception e) {
-            throw new IllegalStateException("플레이어를 움직이는 도중 문제가 발생하였습니다.[" + userCommand.name() + "]");
+            throw new IllegalStateException("플레이어를 움직이는 도중 문제가 발생하였습니다.[" + playerCommand.name() + "]");
         }
     }
 
@@ -212,7 +231,6 @@ public class Play {
         } catch (Exception e) {
             throw new IllegalStateException("경고 메세지 출력 중 문제가 발생하였습니다.");
         }
-
     }
 
     private boolean isPlayerMoveable(Position position, Point direction) {
@@ -235,7 +253,6 @@ public class Play {
         int nx = player.x + direction.getX();
         int ny = player.y + direction.getY();
         char origin = stage.getOriginValueOfChrMap(player); // PLAYER가 있던 위치의 원래 값
-        char next = getValueOfPlayingMap(nx, ny);
 
         if (Sign.PLAYER.getMean() == origin ||
                 Sign.BALL.getMean() == origin) origin = Sign.EMPTY.getMean();
