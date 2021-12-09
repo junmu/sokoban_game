@@ -12,7 +12,7 @@ public class Main {
     private static final String ENCRYPTED_MAP_FILE = "map_enc.txt";
 
     public static void main(String[] args) {
-        boolean printError = true;//(args.length > 0 && args[0].equals("PRINT_ERROR"));
+        boolean printError = (args.length > 0 && args[0].equals("PRINT_ERROR"));
 
         try {
             gameStart();
