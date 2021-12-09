@@ -89,21 +89,21 @@ ROOT
 ### 1-2 실행방법
 1. 소스 클론
 ```shell
-git clone https://gist.github.com/f3fd47327697b966f63ae4d0e28493fa.git
+git clone https://github.com/jinan159/codesquad_2022_sokoban.git
 ```
 2. 자바 소스 컴파일
 ```shell
-cd f3fd47327697b966f63ae4d0e28493fa
+cd codesquad_2022_sokoban
 
-javac -classpath . -d build Main.java
+javac -classpath ./src -d build ./src/app/sokoban/Main.java 
 ```
 3. 프로젝트 실행
 ```shell
 # 일반 실행
-java -classpath ./build Main
+java -classpath ./build app.sokoban.Main
 
 # Exception stack trace 출력하도록 실행
-java -classpath ./build Main PRINT_ERROR
+java -classpath ./build app.sokoban.Main PRINT_ERROR
 ```
 4. 샘플 데이터 복사
 ```text
@@ -129,7 +129,7 @@ Stage 2
 
 6. 결과
 ```shell
-> java -classpath ./build Main
+> java -classpath ./build app.sokoban.Main
 Stage 1
 #####
 #OoP#
@@ -269,7 +269,7 @@ Stage 2
 
 6. 결과
 ```shell
-> java -classpath ./build Main
+> java -classpath ./build app.sokoban.Main
 Stage 2
   #######
 ###  O  ###
@@ -437,7 +437,7 @@ FileStageReader.java : StageReader 구현체로, File을 통해 Stage 정보를 
 
 4. 결과
 ```shell
-> java -classpath ./build Main
+> java -classpath ./build app.sokoban.Main
 Stage: 1
 ####
 #P #
@@ -577,7 +577,7 @@ ROOT
 
 ```shell
 # 저장, 불러오기 기능 --------------------------------------------------------
-> java -classpath ./build Main
+> java -classpath ./build app.sokoban.Main
 Stage 1
 ####
 #P #
@@ -624,7 +624,7 @@ SOKOBAN>
 
 # 되돌리기, 되돌리기 취소 기능 --------------------------------------------------------
 
-> java -classpath ./build Main
+> java -classpath ./build app.sokoban.Main
 Stage 1
 ####
 #P #
