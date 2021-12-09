@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class CmdStageReader implements StageReader {
@@ -11,8 +12,9 @@ public class CmdStageReader implements StageReader {
     }
 
     @Override
-    public Stage readStage() {
+    public Optional<Stage> readStage() {
         List<String> lines = new ArrayList<>();
+        Stage stage;
         boolean isStartOfStage = false;
         int stageIndex = 0;
 
@@ -29,7 +31,7 @@ public class CmdStageReader implements StageReader {
             if (isStartOfStage) lines.add(line); // 입력에서 지도 추출
         }
 
-        return new Stage(lines, stageIndex);
+        return Optional.of(new Stage(lines, stageIndex));
     }
 
     @Override
@@ -37,7 +39,7 @@ public class CmdStageReader implements StageReader {
         List<Stage> stageList = new ArrayList<>();
 
         while(!isClosed()) {
-            stageList.add(readStage());
+            readStage().ifPresent(stageList::add);
         }
 
         return stageList;

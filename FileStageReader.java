@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class FileStageReader implements StageReader {
@@ -17,7 +18,7 @@ public class FileStageReader implements StageReader {
     }
 
     @Override
-    public Stage readStage() {
+    public Optional<Stage> readStage() {
         List<String> lines = new ArrayList<>();
         boolean isStartOfStage = false;
         int stageIndex = 0;
@@ -35,7 +36,7 @@ public class FileStageReader implements StageReader {
         }
 
         if (!sc.hasNext()) close(); // 입력이 종료되었으면 종료
-        return new Stage(lines, stageIndex);
+        return Optional.of(new Stage(lines, stageIndex));
     }
 
     @Override
@@ -43,7 +44,7 @@ public class FileStageReader implements StageReader {
         List<Stage> stageList = new ArrayList<>();
 
         while(!isClosed()) {
-            stageList.add(readStage());
+            readStage().ifPresent(stageList::add);
         }
 
         return stageList;
