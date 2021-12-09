@@ -26,6 +26,42 @@ public enum SystemCommand {
                 .findAny();
     }
 
+    public boolean equals(String command) {
+        return name().equals(command);
+    }
+
+    public static boolean isQuit(String command) {
+        return q.equals(command);
+    }
+
+    public static boolean isReset(String command) {
+        return r.equals(command);
+    }
+
+    public static boolean isSave(String command) {
+        return S.equals(command);
+    }
+
+    public static boolean isLoad(String command) {
+        return L.equals(command);
+    }
+
+    public static boolean isSaveOrLoad(String command) {
+        return (isSave(command) || isLoad(command));
+    }
+
+    public static boolean isUndo(String command) {
+        return u.equals(command);
+    }
+
+    public static boolean isCancelUndo(String command) {
+        return U.equals(command);
+    }
+
+    public static boolean isUndoOrCancelUndo(String command) {
+        return (isUndo(command) || isCancelUndo(command));
+    }
+
     public String getMessage() {
         return message;
     }

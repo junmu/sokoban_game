@@ -103,21 +103,21 @@ public class Play {
     }
 
     private void executeSystemCommand(String command, StringBuffer digitBuffer) throws Exception {
-        if (isQuit(command)) {
+        if (SystemCommand.isQuit(command)) {
             playStatus.setQuit(true);
             System.out.println(SystemCommand.q.getMessage());
         }
 
-        if (isReset(command)) {
+        if (SystemCommand.isReset(command)) {
             reset();
         }
 
-        if (isSaveOrLoad(command, digitBuffer)) {
+        if (SystemCommand.isSaveOrLoad(command) && digitBuffer.length() > 0) {
             int slotNum = Integer.parseInt(digitBuffer.toString());
             saveOrLoad(command, slotNum);
         }
 
-        if (isUndoOrCancelUndo(command)) {
+        if (SystemCommand.isUndoOrCancelUndo(command)) {
             UndoOrCancelUndo(command);
         }
     }
@@ -131,9 +131,9 @@ public class Play {
                 return;
             }
 
-            if (isSave(command) && store.saveStatus(playStatus, slotNum)) System.out.println("저장 성공!");
+            if (SystemCommand.isSave(command) && store.saveStatus(playStatus, slotNum)) System.out.println("저장 성공!");
 
-            if (isLoad(command)) {
+            if (SystemCommand.isLoad(command)) {
                 store.loadStatus(slotNum)
                         .ifPresentOrElse(this::init, () -> System.out.println("진행상황을 불러오지 못하였습니다."));
             }
@@ -145,13 +145,13 @@ public class Play {
     private void UndoOrCancelUndo(String command) throws Exception {
         SystemCommand.findSystemCommand(command).ifPresent((systemCommand) -> {
 
-            if (isUndo(command) && !playStatus.isDoStackEmpty()) {
+            if (SystemCommand.isUndo(command) && !playStatus.isDoStackEmpty()) {
                 String playerCommand = playStatus.popDoStack();
                 PlayerCommand.findPlayerCommand(playerCommand)
                                 .ifPresent(this::undoMoveProcess);
             }
 
-            if (isCancelUndo(command) && !playStatus.isUndoStackEmpty()) {
+            if (SystemCommand.isCancelUndo(command) && !playStatus.isUndoStackEmpty()) {
                 String playerCommand = playStatus.popUndoStack();
                 PlayerCommand.findPlayerCommand(playerCommand)
                         .ifPresent(this::moveProcess);
@@ -159,38 +159,6 @@ public class Play {
         });
 
         playStatus.printPlayingMap();
-    }
-
-    private boolean isQuit(String command) {
-        return command.equals(SystemCommand.q.name());
-    }
-
-    private boolean isReset(String command) {
-        return command.equals(SystemCommand.r.name());
-    }
-
-    private boolean isSave(String command) {
-        return command.equals(SystemCommand.S.name());
-    }
-
-    private boolean isLoad(String command) {
-        return command.equals(SystemCommand.L.name());
-    }
-
-    private boolean isSaveOrLoad(String command, StringBuffer digitBuffer) {
-        return (isSave(command) || isLoad(command)) && digitBuffer.length() > 0;
-    }
-
-    private boolean isUndo(String command) {
-        return command.equals(SystemCommand.u.name());
-    }
-
-    private boolean isCancelUndo(String command) {
-        return command.equals(SystemCommand.U.name());
-    }
-
-    private boolean isUndoOrCancelUndo(String command) {
-        return (isUndo(command) || isCancelUndo(command));
     }
 
     private void reset() throws Exception{
