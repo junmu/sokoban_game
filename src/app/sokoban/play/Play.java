@@ -191,6 +191,7 @@ public class Play {
         System.out.println("\n명령어: " + command);
         PlayerCommand.findPlayerCommand(command)
                 .ifPresent(this::moveProcess);
+        playStatus.clearUndoStack();
     }
 
     private void moveProcess(PlayerCommand playerCommand) {
@@ -227,7 +228,6 @@ public class Play {
 
     private void setMovedTurn(Turn turn) {
         playStatus.pushDoStack(turn);
-        playStatus.clearUndoStack();
     }
 
     private Optional<Point> tryMoveBall(Point ball, PlayerCommand playerCommand) {
