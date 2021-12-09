@@ -1,3 +1,4 @@
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Play {
@@ -45,6 +46,13 @@ public class Play {
 
     private boolean isBallInHall(char chr) {
         return Sign.BALL_IN_HALL.getMean() == chr;
+    }
+
+    private Point getNext(Point point, Point direction) {
+        int x = point.getX() + direction.getX();
+        int y = point.getY() + direction.getY();
+
+        return new Point(x, y);
     }
 
     public void start() {
@@ -142,23 +150,24 @@ public class Play {
         playStatus.printPlayingMap();
     }
 
-    private void UndoOrCancelUndo(String command) throws Exception {
-        SystemCommand.findSystemCommand(command).ifPresent((systemCommand) -> {
+    private void UndoOrCancelUndo(String command) {
+        boolean isStackEmpty = false;
 
-            if (SystemCommand.isUndo(command) && !playStatus.isDoStackEmpty()) {
-                String playerCommand = playStatus.popDoStack();
-                PlayerCommand.findPlayerCommand(playerCommand)
-                                .ifPresent(this::undoMoveProcess);
+        if (SystemCommand.isUndo(command)) {
+            if (!(isStackEmpty = playStatus.isDoStackEmpty())) {
+                Turn turn = playStatus.popDoStack();
+                undoMoveProcess(turn);
             }
+        }
 
-            if (SystemCommand.isCancelUndo(command) && !playStatus.isUndoStackEmpty()) {
-                String playerCommand = playStatus.popUndoStack();
-                PlayerCommand.findPlayerCommand(playerCommand)
-                        .ifPresent(this::moveProcess);
+        if (SystemCommand.isCancelUndo(command)) {
+            if (!(isStackEmpty = playStatus.isUndoStackEmpty())) {
+                Turn turn = playStatus.popUndoStack();
+                moveProcess(turn.getCommand());
             }
-        });
+        }
 
-        playStatus.printPlayingMap();
+        if (isStackEmpty) printWarning();
     }
 
     private void reset() throws Exception{
@@ -174,64 +183,78 @@ public class Play {
     }
 
     private void moveProcess(PlayerCommand playerCommand) {
+        Point playerNextStep = getNext(playStatus.getPlayer(), playerCommand.getDirection());
+        char next = playStatus.getValueOfPlayingMap(playerNextStep);
+        boolean nextIsBall = (isBall(next) || isBallInHall(next));
+
+        if (nextIsBall) {
+            moveBallAndPlayer(playerNextStep, playerCommand);
+        } else {
+            Optional<Point> movedPlayer = tryMovePlayer(playerCommand);
+
+            if (movedPlayer.isPresent()) {
+                Turn turn = new Turn(movedPlayer.get(), playerCommand);
+
+                setMovedTurn(turn);
+            }
+        }
+    }
+
+    private void moveBallAndPlayer(Point playerNextStep, PlayerCommand playerCommand) {
+        Optional<Point> movedBall = tryMoveBall(playerNextStep, playerCommand);
+
+        if (movedBall.isPresent()) {
+            Optional<Point> movedPlayer = tryMovePlayer(playerCommand);
+
+            if (movedPlayer.isPresent()) {
+                Turn turn = new Turn(movedPlayer.get(),movedBall.get(), playerCommand);
+
+                setMovedTurn(turn);
+            }
+        }
+    }
+
+    private void setMovedTurn(Turn turn) {
+        playStatus.pushDoStack(turn);
+        playStatus.clearUndoStack();
+    }
+
+    private Optional<Point> tryMoveBall(Point ball, PlayerCommand playerCommand) {
+        Point movedBall;
         Point direction = playerCommand.getDirection();
-        Point nextPoint = getPlayerNextStep(direction);
 
-        char next = playStatus.getValueOfPlayingMap(nextPoint);
-        boolean isMoveable = true;
-        if (isBall(next) || isBallInHall(next)) {
-            isMoveable = tryMoveBall(nextPoint, direction);
-        }
-
-        if (isMoveable) {
-            movePlayer(playerCommand);
-        }
-
-        if (playStatus.checkSuccess()) playStatus.setSuccess(true);
-    }
-
-    private Point getPlayerNextStep(Point direction) {
-        Position player = playStatus.getPlayer();
-        int x = player.x + direction.getX();
-        int y = player.y + direction.getY();
-
-        return new Point(x, y);
-    }
-
-    private boolean tryMoveBall(Point ball, Point direction) {
-        boolean isBallMoveable = isBallMoveable(ball, direction);
-        if (!isBallMoveable) {
+        if (!isBallMoveable(ball, direction)) {
             printWarning();
-            return false;
+            return Optional.empty();
         }
 
-        moveBallPosition(ball, direction);
+        movedBall = moveBallPosition(ball, direction);
 
-        return isBallMoveable;
+        return Optional.of(movedBall);
     }
 
-    private void moveBallPosition(Point ball, Point direction) {
-        int nx = ball.getX() + direction.getX();
-        int ny = ball.getY() + direction.getY();
+    private Point moveBallPosition(Point ball, Point direction) {
+        Point movedBall = getNext(ball, direction);
 
-        char origin = stage.getOriginValueOfChrMap(ball); // BALL이 있던 위치의 원래 값
-        char next = playStatus.getValueOfPlayingMap(nx, ny);         // BALL이 이동할 위치의 원래 값
-        char nextValue = Sign.BALL.getMean();             // BALL이 이동할 위치에 들어갈 값
+        char origin = stage.getOriginValueOfChrMap(ball);       // BALL이 있던 위치의 원래 값
+        char next = playStatus.getValueOfPlayingMap(movedBall); // BALL이 이동할 위치의 원래 값
+        char nextValue = Sign.BALL.getMean();                   // BALL이 이동할 위치에 들어갈 값
 
         if (isBall(origin) || isPlayer(origin)) origin = Sign.EMPTY.getMean();
         if (Sign.HALL.getMean() == next) nextValue = Sign.BALL_IN_HALL.getMean();
 
         playStatus.setValueOnPlayingMap(ball, origin);
-        playStatus.setValueOnPlayingMap(nx, ny, nextValue);
+        playStatus.setValueOnPlayingMap(movedBall, nextValue);
+
+        return movedBall;
     }
 
     private boolean isBallMoveable(Point position, Point direction) {
-        int x = position.getX() + direction.getX();
-        int y = position.getY() + direction.getY();
+        Point nextStep = getNext(position, direction);
 
-        if (playStatus.isOutOfBoundOnPlayingMap(x, y)) return false;
+        if (playStatus.isOutOfBoundOnPlayingMap(nextStep)) return false;
 
-        char next = playStatus.getValueOfPlayingMap(x,y);
+        char next = playStatus.getValueOfPlayingMap(nextStep);
 
         //EMPTY, HALL 이 아니면 움직일 수 없음
         if (Sign.EMPTY.getMean() != next &&
@@ -240,24 +263,76 @@ public class Play {
         return true;
     }
 
-    private void movePlayer(PlayerCommand playerCommand) {
+    private Optional<Point> tryMovePlayer(PlayerCommand playerCommand) {
         try {
-            Position player = playStatus.getPlayer();
             Point direction = playerCommand.getDirection();
-
-            if (!isPlayerMoveable(player, direction)) {
+            if (!isPlayerMoveable(playStatus.getPlayer(), direction)) {
                 printWarning();
-                return;
+                return Optional.empty();
             }
 
-            movePlayerPosition(player, direction);
+            Point movedPlayer = movePlayerPosition(playStatus.getPlayer(), playerCommand.getDirection());
             playStatus.playerMoved();
-            playStatus.pushDoStack(playerCommand.name());
+            if (playStatus.checkSuccess()) playStatus.setSuccess(true);
 
             System.out.println(playerCommand.name() + ": " + playerCommand.getMessage());
             playStatus.printPlayingMap();
+
+            return Optional.of(movedPlayer);
+
         } catch (Exception e) {
             throw new IllegalStateException("플레이어를 움직이는 도중 문제가 발생하였습니다.[" + playerCommand.name() + "]");
+        }
+    }
+
+    private boolean isPlayerMoveable(Position position, Point direction) {
+        Point nextStep = getNext(position, direction);
+
+        if (playStatus.isOutOfBoundOnPlayingMap(nextStep)) return false;
+
+        char next = playStatus.getValueOfPlayingMap(nextStep);
+
+        //EMPTY, HALL, BALL_IN_HALL 이 아니면 움직일 수 없음
+        if (Sign.EMPTY.getMean() != next &&
+                Sign.HALL.getMean() != next &&
+                Sign.BALL_IN_HALL.getMean() != next ) return false;
+
+        return true;
+    }
+
+    private Point movePlayerPosition(Point player, Point direction) {
+        Point nextStep = getNext(player, direction);
+        char origin = stage.getOriginValueOfChrMap(player); // PLAYER가 있던 위치의 원래 값
+
+        if (Sign.PLAYER.getMean() == origin ||
+                Sign.BALL.getMean() == origin) origin = Sign.EMPTY.getMean();
+
+        playStatus.setValueOnPlayingMap(nextStep, Sign.PLAYER.getMean());
+        playStatus.setValueOnPlayingMap(player, origin);
+
+        playStatus.getPlayer().x = nextStep.getX();
+        playStatus.getPlayer().y = nextStep.getY();
+
+        return nextStep;
+    }
+
+    private void undoMoveProcess(Turn turn) {
+
+        try {
+            Point reverse = turn.getCommand().getReverse();
+            movePlayerPosition(turn.getMovedPlayer(), reverse);
+
+            if (turn.isBallMoved()) {
+                moveBallPosition(turn.getMovedBall(), reverse);
+            }
+
+            playStatus.pushUndoStack(turn);
+
+            System.out.println("한 턴 되돌리기: " + turn.getCommand().name());
+
+            playStatus.printPlayingMap();
+        } catch (Exception e) {
+            throw new IllegalStateException("한 턴 되돌리기 실행 중 문제가 발생하였습니다.[" + turn.getCommand().name() + "]");
         }
     }
 
@@ -268,82 +343,6 @@ public class Play {
         } catch (Exception e) {
             throw new IllegalStateException("경고 메세지 출력 중 문제가 발생하였습니다.");
         }
-    }
-
-    private boolean isPlayerMoveable(Position position, Point direction) {
-        int x = position.x + direction.getX();
-        int y = position.y + direction.getY();
-
-        if (playStatus.isOutOfBoundOnPlayingMap(x, y)) return false;
-
-        char next = playStatus.getValueOfPlayingMap(x,y);
-
-        //EMPTY, HALL, BALL_IN_HALL 이 아니면 움직일 수 없음
-        if (Sign.EMPTY.getMean() != next &&
-                Sign.HALL.getMean() != next &&
-                Sign.BALL_IN_HALL.getMean() != next ) return false;
-
-        return true;
-    }
-
-    private void movePlayerPosition(Position player, Point direction) {
-        int nx = player.x + direction.getX();
-        int ny = player.y + direction.getY();
-        char origin = stage.getOriginValueOfChrMap(player); // PLAYER가 있던 위치의 원래 값
-
-        if (Sign.PLAYER.getMean() == origin ||
-                Sign.BALL.getMean() == origin) origin = Sign.EMPTY.getMean();
-
-        playStatus.setValueOnPlayingMap(nx, ny, Sign.PLAYER.getMean());
-        playStatus.setValueOnPlayingMap(player, origin);
-
-        player.x = nx;
-        player.y = ny;
-    }
-
-    private void undoMoveProcess(PlayerCommand playerCommand) {
-        try {
-            Point direction = playerCommand.getDirection();
-            Point reverse = playerCommand.getReverse();
-            Point nextPoint = getPlayerNextStep(direction);
-
-            char next = playStatus.getValueOfPlayingMap(nextPoint);
-            boolean isBallExist = (isBall(next) || isBallInHall(next));
-
-            undoMovePlayer(playerCommand);
-
-            if (isBallExist) undoMoveBall(nextPoint, reverse);
-
-            System.out.println("한 턴 되돌리기: " + playerCommand.name());
-
-            playStatus.printPlayingMap();
-        } catch (Exception e) {
-            throw new IllegalStateException("한 턴 되돌리기 실행 중 문제가 발생하였습니다.[" + playerCommand.name() + "]");
-        }
-    }
-
-    private void undoMoveBall(Point ball, Point direction) {
-        boolean isBallMoveable = isBallMoveable(ball, direction);
-
-        if (!isBallMoveable) {
-            printWarning();
-        }
-
-        moveBallPosition(ball, direction);
-    }
-
-    private void undoMovePlayer(PlayerCommand playerCommand) {
-        Position player = playStatus.getPlayer();
-        Point reverse = playerCommand.getReverse();
-
-        if (!isPlayerMoveable(player, reverse)) {
-            printWarning();
-            return;
-        }
-
-        movePlayerPosition(player, reverse);
-        playStatus.undoPlayerMoved();
-        playStatus.pushUndoStack(playerCommand.name());
     }
 
     public boolean isSuccess() {

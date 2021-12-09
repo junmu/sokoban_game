@@ -8,8 +8,8 @@ public class PlayStatus {
     private int playerMoveCount;
     private boolean success;
     private boolean quit;
-    private final Stack<String> doStack;
-    private final Stack<String> undoStack;
+    private final Stack<Turn> doStack;
+    private final Stack<Turn> undoStack;
 
     private PlayStatus(Stage stage,
                        Position player,
@@ -17,8 +17,8 @@ public class PlayStatus {
                        int playerMoveCount,
                        boolean success,
                        boolean quit,
-                       Stack<String> doStack,
-                       Stack<String> undoStack) {
+                       Stack<Turn> doStack,
+                       Stack<Turn> undoStack) {
         this.stage = stage;
         this.player = player;
         this.playingMap = playingMap;
@@ -79,6 +79,10 @@ public class PlayStatus {
         return y < 0 || y >= playingMap.length || x < 0 || x >= playingMap[y].length;
     }
 
+    public boolean isOutOfBoundOnPlayingMap(Point point) {
+        return isOutOfBoundOnPlayingMap(point.getX(), point.getY());
+    }
+
     public void printPlayingMap() throws Exception{
         StageWriter writer = new CmdStageWriter();
         writer.writeStage(playingMap);
@@ -115,37 +119,25 @@ public class PlayStatus {
         return Sign.BALL_IN_HALL.getMean() == chr;
     }
 
-    public void pushDoStack(String command) {
-        doStack.push(command);
-    }
+    public void pushDoStack(Turn turn) { doStack.push(turn); }
 
-    public String popDoStack() {
-        return doStack.pop();
-    }
+    public Turn popDoStack() { return doStack.pop(); }
 
-    public boolean isDoStackEmpty() {
-        return doStack.isEmpty();
-    }
+    public boolean isDoStackEmpty() { return doStack.isEmpty(); }
 
-    public void pushUndoStack(String command) {
-        undoStack.push(command);
-    }
+    public Stack<Turn> cloneDoStack() { return (Stack<Turn>) doStack.clone(); }
 
-    public String popUndoStack() {
-        return undoStack.pop();
-    }
+    public void clearDoStack() { doStack.clear(); }
 
-    public boolean isUndoStackEmpty() {
-        return undoStack.isEmpty();
-    }
+    public void pushUndoStack(Turn turn) { undoStack.push(turn); }
 
-    public Stack<String> cloneDoStack() {
-        return (Stack<String>) doStack.clone();
-    }
+    public Turn popUndoStack() { return undoStack.pop(); }
 
-    public Stack<String> cloneUndoStack() {
-        return (Stack<String>) undoStack.clone();
-    }
+    public boolean isUndoStackEmpty() { return undoStack.isEmpty(); }
+
+    public Stack<Turn> cloneUndoStack() { return (Stack<Turn>) undoStack.clone(); }
+
+    public void clearUndoStack() { undoStack.clear(); }
 
     public static class PlayStatusBuilder {
         private Stage stage;
@@ -154,8 +146,8 @@ public class PlayStatus {
         private int playerMoveCount;
         private boolean success;
         private boolean quit;
-        public Stack<String> doStack;
-        public Stack<String> undoStack;
+        public Stack<Turn> doStack;
+        public Stack<Turn> undoStack;
 
         public PlayStatusBuilder setStage(Stage stage) {
             this.stage = stage;
@@ -187,12 +179,12 @@ public class PlayStatus {
             return this;
         }
 
-        public PlayStatusBuilder setDoStack(Stack<String> doStack) {
+        public PlayStatusBuilder setDoStack(Stack<Turn> doStack) {
             this.doStack = doStack;
             return this;
         }
 
-        public PlayStatusBuilder setUndoStack(Stack<String> undoStack) {
+        public PlayStatusBuilder setUndoStack(Stack<Turn> undoStack) {
             this.undoStack = undoStack;
             return this;
         }
