@@ -51,7 +51,6 @@ public class Play {
         try {
             Scanner sc = new Scanner(System.in);
 
-            System.out.println("Stage: " + playStatus.getStage().getStageIndex());
             writer.writeStage(stage);
 
             while (!playStatus.isQuit() && !playStatus.isSuccess()) {
