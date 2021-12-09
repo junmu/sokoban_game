@@ -33,9 +33,17 @@ public class AES256Encrypter {
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
-    public String decrypt(String cipherText) throws Exception {
-        byte[] decodedBytes = Base64.getDecoder().decode(cipherText);
-        byte[] decrypted = getDecrypter().doFinal(decodedBytes);
-        return new String(decrypted, StandardCharsets.UTF_8);
+    public String decrypt(String cipherText) throws IllegalStateException {
+        String result;
+
+        try {
+            byte[] decodedBytes = Base64.getDecoder().decode(cipherText);
+            byte[] decrypted = getDecrypter().doFinal(decodedBytes);
+            result = new String(decrypted, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new IllegalStateException("파일의 암호화 형식이 올바르지 않습니다.");
+        }
+
+        return result;
     }
 }
